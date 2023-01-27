@@ -1,0 +1,80 @@
+---
+- name: personal-webpage-configuration 
+  hosts: all
+  tasks:
+  - name: Creating user 
+    user:
+      name:  ansible
+      shell: /bin/bash
+      groups: sudo 
+      append: yes
+      state: present
+      create_home: True       
+
+  - name: Installing apache
+    ansible.builtin.package:
+      name: apache2 
+      state: present
+
+  - name: Installing ufw
+    ansible.builtin.package:
+      name: ufw
+      state: present
+
+  - name: Enabling apache systemd services
+    systemd:
+      name: apache2 
+      enabled: yes
+      state: started
+
+  - name: Enabling ufw systemd services
+    systemd:
+      name: ufw
+      enabled: yes
+      state: started
+
+  - name: Configuring ufw
+    shell: |
+      ufw allow 80 
+      ufw allow 443
+      ufw allow 22
+
+- name: configure-webpage
+  hosts: all
+  tasks:
+  - name: rename webpage
+    ansible.builtin.copy:
+      src: /etc/apache2/sites-available/000-default.conf
+      dest: /etc/apache2/sites-available/webpage.conf
+      owner: www-data
+      group: www-data
+
+  - name: disable default config 
+    command: a2dissite 000-default.conf
+
+  - name: change name of main webpage
+    lineinfile:
+      path: /etc/apache2/sites-available/webpage.conf
+      regexp: 'ServerName'
+      insertafter: '#ServerName'
+      line: "        ServerName www.{{ server }}\n        ServerAlias {{server}}"
+
+  - name: enable  main page configuration 
+    command: a2ensite webpage.conf
+
+  - name: installing certbot snap package
+    snap:
+      name: certbot
+      classic: true
+
+  - name: certbot symlink
+    file:
+      src: /snap/bin/certbot
+      dest: /usr/bin/certbot
+      state: link
+
+  - name: "using certbot on {{server}}"
+    command: "certbot --apache -d {{server}} --non-interactive --agree-tos -m 'webmaster@jbolivar.co' "
+
+  - name: "using certbot on www.{{server}}"
+    command: "certbot --apache -d www.{{server}} --non-interactive --agree-tos -m 'webmaster@jbolivar.co' "
