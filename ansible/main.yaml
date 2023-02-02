@@ -89,6 +89,12 @@
 - name: lugo installation
   hosts: all
   tasks:
+
+  - name : delete previous-hugo site
+    file:
+      path: /home/lugo/newsite
+      state: absent
+
   - name: hugo-site config
     shell: |
       cd /home/lugo
@@ -98,6 +104,20 @@
     ansible.builtin.git:
       repo: https://github.com/LukeSmithxyz/lugo.git 
       dest: /home/lugo/newsite/themes/lugo
+
+  - name: Change name of webpage
+    lineinfile:
+      path: /home/lugo/newsite/config.toml
+      regexp: 'title.*=.*'
+      line: "title = '{{webpage_name}}'"
+
+  - name: Change name of webpage
+    lineinfile:
+      path: /home/lugo/newsite/config.toml
+      regexp: 'baseUrl.*=.*'
+      line: "baseUrl = 'https://{{server}}'"
+
+
 
   - name: Configuring theme
     shell: |

@@ -32,7 +32,7 @@ check_dns(){
 
 function ansible_run(){
 	ipv4_webpage="$(cat terraform/output.txt | sed 's/ipv4_webpage = //' | sed 's/"//g')" 
-	ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i "$ipv4_webpage," -e "server=$server"  ansible/main.yaml
+	ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -u root -i "$ipv4_webpage," -e "server=$server" -e "webpage_name=$webpage_name"   ansible/main.yaml
 }
 
 terraform_run
