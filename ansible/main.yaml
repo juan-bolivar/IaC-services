@@ -89,10 +89,20 @@
 - name: lugo installation
   hosts: all
   tasks:
+  - name: hugo-site config
+    shell: |
+      cd /home/lugo
+      hugo new site newsite --force 
+
   - name: Read-write git checkout from github
     ansible.builtin.git:
       repo: https://github.com/LukeSmithxyz/lugo.git 
-      dest: /home/lugo/lugo
+      dest: /home/lugo/newsite/themes/lugo
+
+  - name: Configuring theme
+    shell: |
+      echo "theme = 'lugo'" >>  /home/lugo/newsite/config.toml
+      cp /home/lugo/newsite/themes/lugo/static/style.css /home/lugo/newsite/static
 
   - name: Deploying lugo
     shell: |
